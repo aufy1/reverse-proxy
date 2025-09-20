@@ -1,0 +1,36 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d       # config
+      - ./logs:/var/log/nginx                  # logs
+      - ./nginx/www:/var/www/html
+      - ./nginx/dhparam.pem:/etc/nginx/dhparam/dhparam.pem        # generating sequence
+      - ./certs:/etc/letsencrypt
+    networks:
+      - ext_net
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./nginx/www:/var/www/html
+    entrypoint: >
+      sh -c "certbot certonly --webroot
+      --webroot-path=/var/www/html
+      -d aufy.pl -d mail.aufy.pl
+      --email admin@aufy.pl
+      --agree-tos
+      --non-interactive
+      && crond -f"
+    restart: unless-stopped
+
+networks:
+  ext_net:
+    driver: bridge

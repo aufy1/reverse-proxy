@@ -1,0 +1,6 @@
+logs
+certs
+*.pem
+*.key
+.well-known
+.env
